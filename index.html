@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arma tu Plato: juega contra bots</title>
+<style>
+:root{--bg:#fff6e6;--cd:#fffdf8;--tx:#2b2a28;--mu:#7a6f62;--ln:#e6d9bf;--co:#e4572e;--am:#f0a21e;--gr:#3e9a66;--cl:#fde0d4;--al:#feedc4;--gl:#d9f0e0;--ok:#1f7a4d;--no:#b83227;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b2029;--cd:#2a2f3a;--tx:#f3efe6;--mu:#b3aa9b;--ln:#434b5a;--cl:#4a2a22;--al:#4a3a14;--gl:#1f3b2b;--ok:#6fd49c;--no:#ff8a7d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b2029;--cd:#2a2f3a;--tx:#f3efe6;--mu:#b3aa9b;--ln:#434b5a;--cl:#4a2a22;--al:#4a3a14;--gl:#1f3b2b;--ok:#6fd49c;--no:#ff8a7d;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background-color:var(--bg);background-image:linear-gradient(90deg,#e4572e18 50%,transparent 50%),linear-gradient(#e4572e18 50%,transparent 50%);background-size:34px 34px;color:var(--tx);font:16px/1.45 "Avenir Next",Avenir,"Trebuchet MS",system-ui,sans-serif}
+.w{max-width:780px;margin:auto;padding:14px}
+h1{font:italic 800 32px/1.1 Baskerville,"Palatino Linotype",Georgia,serif;margin:4px 0 2px;color:var(--co)}
+h2{font:700 20px/1.3 Baskerville,"Palatino Linotype",Georgia,serif;margin:6px 0 12px}
+.mu{color:var(--mu);font-size:14px}
+.pl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.p{background:var(--cd);border:2px solid var(--ln);border-radius:14px;padding:8px;font-size:13px;min-width:0;text-align:center;position:relative}
+.p.on{border-color:var(--co);animation:glow 1.5s infinite}
+.p b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{font-size:28px;line-height:1.1}.av.act{animation:bob .9s ease-in-out infinite}
+.pts{position:relative;display:inline-block;font-weight:700}
+.plus{position:absolute;right:-26px;top:-6px;color:var(--ok);font-style:normal;font-weight:800;animation:rise .9s forwards}
+.plate{position:relative;width:100%;max-width:130px;aspect-ratio:1;margin:6px auto;border-radius:50%;background:radial-gradient(circle,#fff 0 60%,#e9e1d2 61% 68%,#fff 69%);box-shadow:0 3px 8px #0003}
+.s{position:absolute;width:38%;aspect-ratio:1;border-radius:50%;border:2px dashed;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.6vw,24px)}
+.s small{font-size:10px;font-weight:700;color:#7a6f62}.s.f{border-style:solid}.s.f small{display:none}
+.s:nth-child(1){top:6%;left:31%}.s:nth-child(2){bottom:9%;left:8%}.s:nth-child(3){bottom:9%;right:8%}
+.c0{background:var(--cl)}.c1{background:var(--al)}.c2{background:var(--gl)}
+.s.c0{border-color:var(--co)}.s.c1{border-color:var(--am)}.s.c2{border-color:var(--gr)}
+.s.new{animation:drop .9s cubic-bezier(.3,1.4,.5,1)}.bump{animation:bump .9s}
+#main{background:#27483c;color:#fbf6e9;border:7px solid #a8713f;border-radius:14px;padding:16px;min-height:270px;box-shadow:inset 0 0 30px #0007,0 4px 12px #0004}
+#main .mu{color:#cfdccf}#main .ok{color:#8be0ad;font-weight:700}#main .no{color:#ff9b8d;font-weight:700}
+.fade{animation:fin .35s}
+.b{display:block;width:100%;text-align:left;font:inherit;color:#243447;background:#fbf6e9;border:2px solid #e3d6b8;border-radius:10px;padding:11px 12px;margin:8px 0;cursor:pointer;transition:transform .15s}
+.b:hover:not(:disabled){transform:translateY(-2px);border-color:var(--co)}.b:focus-visible,input:focus-visible{outline:3px solid var(--am);outline-offset:2px}
+.b:disabled{cursor:default}.b:disabled:not(.good):not(.bad){opacity:.5}
+.b .mu{color:#6b7785}
+.b.good{background:#dff7e8;border-color:#3e9a66;animation:pop .5s}.b.bad{background:#ffe3df;border-color:#e4572e;animation:shake .5s}
+.go{background:var(--co);color:#fff;border-color:var(--co);text-align:center;font-weight:700}
+#main .b.c0{background:#fbf6e9;border-left:8px solid var(--co)}#main .b.c1{background:#fbf6e9;border-left:8px solid var(--am)}#main .b.c2{background:#fbf6e9;border-left:8px solid var(--gr)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.fg .b{margin:0}
+input{font:inherit;padding:10px;border:2px solid #e3d6b8;border-radius:10px;width:120px;background:#fbf6e9;color:#243447}
+.think{font-size:18px;margin-top:10px}.dots span{display:inline-block;animation:dot 1.2s infinite}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.flash{font-size:22px;font-weight:800;text-align:center;padding:12px;animation:pop .5s}.flash.ok{color:#8be0ad}.flash.no{color:#ff9b8d}.big{font-size:44px;display:inline-block;animation:pop .6s}
+#tb{margin-top:10px;font-size:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+#tb div{border-radius:8px;padding:5px 7px;color:#2b2a28;transition:opacity .4s}#tb .cap{grid-column:1/-1;background:none;color:var(--mu);padding:0}
+#tb .x{opacity:.35;text-decoration:line-through}
+#log{font-size:13px;color:var(--mu);margin-top:10px;min-height:56px}
+.rain{position:fixed;top:-40px;font-size:26px;pointer-events:none;z-index:9;animation:fall linear forwards}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 #e4572e66}50%{box-shadow:0 0 0 8px #e4572e00}}
+@keyframes bob{50%{transform:translateY(-5px) rotate(-6deg)}}
+@keyframes bump{30%{transform:scale(1.4);color:var(--co)}}
+@keyframes rise{0%{opacity:0;transform:translateY(6px)}20%{opacity:1}100%{opacity:0;transform:translateY(-24px)}}
+@keyframes drop{0%{transform:translateY(-70px) scale(.3) rotate(-40deg);opacity:0}60%{transform:translateY(4px) scale(1.25)}100%{transform:none;opacity:1}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes fin{from{opacity:0;transform:translateY(8px)}}
+@keyframes dot{0%,80%,100%{opacity:.2;transform:none}40%{opacity:1;transform:translateY(-5px)}}
+@keyframes fall{to{transform:translateY(112vh) rotate(360deg)}}
+
+.w{position:relative;z-index:1}
+.bgf{position:fixed;font-size:34px;opacity:.22;pointer-events:none;z-index:0;animation:float 7s ease-in-out infinite alternate}
+.fade .b{animation:fin .4s backwards}.fade .b:nth-of-type(1){animation-delay:.05s}.fade .b:nth-of-type(2){animation-delay:.13s}.fade .b:nth-of-type(3){animation-delay:.21s}.fade .b:nth-of-type(4){animation-delay:.29s}
+.p.hit{animation:shake .5s}.p.won{animation:hop .6s}
+.toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;background:#243447;color:#fff;padding:9px 18px;border-radius:99px;font-weight:700;z-index:30;white-space:nowrap;box-shadow:0 6px 16px #0005;animation:toast 1.9s forwards}
+.ov{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px;z-index:20;animation:fin .25s}.ov.out{opacity:0;transition:opacity .25s}
+.fc{width:min(92vw,380px);height:min(78vh,440px);perspective:1100px;cursor:pointer;animation:pop .5s}
+.fci{position:relative;width:100%;height:100%;transition:transform .8s;transform-style:preserve-3d}.fc.flip .fci{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:20px;display:flex;flex-direction:column;justify-content:center;text-align:center;color:#243447;overflow:auto;box-shadow:0 10px 30px #0006}
+.face .mu{color:#7a6f62}.face h2{margin-top:10px}
+.fr{background:linear-gradient(160deg,#fff6e6,#feedc4);border:6px solid var(--am)}
+.bk{transform:rotateY(180deg);background:#fffdf8;border:6px solid var(--gr)}.bk.lose{border-color:var(--co)}
+.face small{font-weight:800;letter-spacing:.12em;color:#7a6f62}
+.ans{font:800 24px/1.2 Baskerville,"Palatino Linotype",Georgia,serif;margin:8px 0;color:#1f7a4d}.bk.lose .ans{color:#b83227}
+.rs{font-size:14px}.ov .ok{color:#1f7a4d;font-weight:700}.ov .no{color:#b83227;font-weight:700}
+.sp{position:absolute;left:50%;top:50%;font-size:26px;pointer-events:none;animation:spark 1s ease-out forwards}
+@keyframes float{to{transform:translateY(-26px) rotate(14deg)}}
+@keyframes hop{40%{transform:translateY(-10px) scale(1.04)}}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-30px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-12px)}}
+@keyframes spark{from{transform:translate(-50%,-50%) scale(.3);opacity:1}to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2) rotate(200deg);opacity:0}}
+
+.mrow{margin:10px 0;font-size:15px}.bar{position:relative;height:12px;border-radius:6px;background:#0005;overflow:hidden;margin-top:4px}
+.bar u{position:absolute;top:0;bottom:0;background:#fff3;border-left:2px dashed #fffa;border-right:2px dashed #fffa}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:var(--w);border-radius:6px;animation:grow 1s backwards .3s}
+@keyframes grow{from{width:0}}
+
+.vic{background:radial-gradient(circle,#3b2a6acc,#000d)}
+.vc{position:relative;width:min(92vw,400px);background:linear-gradient(160deg,#fff6e6,#feedc4);border:6px solid var(--am);border-radius:22px;padding:26px 18px 20px;text-align:center;color:#243447;animation:pop .6s cubic-bezier(.3,1.5,.5,1);box-shadow:0 0 0 6px #f6c32455,0 0 60px #f6c324aa;overflow:hidden}
+.rays{position:absolute;left:50%;top:75px;width:480px;height:480px;margin:-240px 0 0 -240px;border-radius:50%;background:repeating-conic-gradient(#f6c32466 0 10deg,transparent 10deg 20deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:spin 12s linear infinite}
+.trophy{position:relative;font-size:84px;line-height:1;animation:drop 1s cubic-bezier(.3,1.4,.5,1) .15s backwards,wig 1.6s ease-in-out 1.2s infinite}
+.vt{position:relative;font:800 31px/1.1 Baskerville,"Palatino Linotype",Georgia,serif;margin:6px 0;background:linear-gradient(90deg,#e4572e,#f0a21e,#3e9a66,#e4572e);background-size:300%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 3s linear infinite,pop .6s .5s backwards}
+.vs{position:relative;margin:4px 0 8px}
+.stars{position:relative;font-size:36px}.stars span{display:inline-block;animation:pop .5s backwards}.stars span:nth-child(1){animation-delay:.9s}.stars span:nth-child(2){animation-delay:1.1s}.stars span:nth-child(3){animation-delay:1.3s}
+.chip{position:relative;display:inline-block;background:#243447;color:#fff;border-radius:99px;padding:4px 14px;font-weight:700;font-size:14px;margin:4px 0;animation:pop .5s 1.5s backwards}
+.vb{position:relative;display:flex;gap:10px;justify-content:center;margin:10px 0 4px}.vb div{background:#fff;border-radius:12px;padding:6px 16px;min-width:84px}.vb b{display:block;font-size:26px}.vb small{color:#7a6f62}
+.cf{position:fixed;top:-20px;width:9px;height:14px;z-index:25;pointer-events:none;animation:cfall linear forwards}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes wig{50%{transform:rotate(-8deg) scale(1.08)}}@keyframes shine{to{background-position:300%}}@keyframes cfall{to{transform:translateY(112vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>🍽️ Arma tu Plato</h1>
+<div class="mu" id="rd">Juega contra dos bots: acierta, arma tu plato y calcula sus kcal.</div>
+<div class="pl" id="pl"></div>
+<div id="main"></div>
+<div id="tb"></div>
+<div id="log"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const TN=['Proteína','Carbohidrato','Grasa'],MAXR=12;
+const BOTS=[['Chef Byte','🧑‍🍳'],['Doña Kcal','👩‍🍳'],['Capitán Proteína','🦸'],['Señor Aguacate','🥑'],['Miss Fibra','🧚'],['Don Carbo','🧙'],['Pepe Pimiento','🫑'],['Lola Lechuga','🥬'],['Profe Vitamina','🧑‍🏫'],['Doctora Avena','👩‍🔬'],['Tía Tortilla','🫓'],['Mister Mango','🥭']];
+const FD=[['Huevo','🥚',0,6,0,5],['Pollo cocido','🍗',0,30,0,4],['Atún en agua','🐟',0,20,0,1],['Yogur natural','🥛',0,9,12,4],['Queso fresco','🧀',0,8,1,7],['Carne magra de res','🥩',0,26,0,8],
+['Arroz cocido','🍚',1,4,45,0],['Plátano','🍌',1,1,27,0],['Tortillas de maíz','🫓',1,3,24,1],['Avena','🥣',1,5,27,3],['Papa cocida','🥔',1,3,30,0],['Pan integral','🍞',1,6,24,2],
+['Aguacate','🥑',2,1,6,11],['Nueces','🌰',2,4,4,18],['Aceite de oliva','🫒',2,0,0,14],['Cacahuates','🥜',2,7,5,14],['Coco','🥥',2,1,3,10],['Mantequilla','🧈',2,0,0,11]];
+const BEN={'Huevo':'proteína completa; aporta colina, vitamina D y B12.','Pollo cocido':'proteína magra que ayuda a construir y reparar músculo con poca grasa.','Atún en agua':'proteína magra con vitamina B12 y selenio.','Yogur natural':'proteína y calcio para los huesos; con probióticos que cuidan la digestión.','Queso fresco':'proteína y calcio; cuida la porción y la sal.','Carne magra de res':'proteína con hierro y zinc; elige cortes magros.','Arroz cocido':'energía rápida y fácil de digerir; el integral suma fibra.','Plátano':'energía rápida con potasio, útil para músculos y nervios.','Tortillas de maíz':'carbohidrato con algo de fibra y calcio (si son nixtamalizadas).','Avena':'fibra soluble que da saciedad y energía más duradera.','Papa cocida':'energía con potasio y vitamina C; mejor cocida que frita.','Pan integral':'carbohidrato con fibra: energía más gradual y mejor digestión.','Aguacate':'grasas insaturadas, fibra y potasio, buenas para el corazón.','Nueces':'grasas insaturadas con omega-3 vegetal y vitamina E.','Aceite de oliva':'grasas insaturadas y antioxidantes; úsalo en poca cantidad.','Cacahuates':'grasas insaturadas y proteína vegetal; cuida la sal.','Coco':'aporta fibra y energía, pero su grasa es saturada: con moderación.','Mantequilla':'aporta vitamina A, pero es grasa saturada: en pocas cantidades.'};
+const Q=[
+['¿Cuáles son los tres macronutrientes?',['Proteínas, carbohidratos y grasas','Vitaminas, minerales y agua','Fibra, sal y azúcar'],0,'Se necesitan en cantidades grandes. Las vitaminas y los minerales son micronutrientes.'],
+['¿Cuántas kcal aporta 1 gramo de grasa?',['4 kcal','9 kcal','2 kcal'],1,'Proteína y carbohidrato aportan 4 kcal por gramo; la grasa 9, más del doble.'],
+['Un alimento tiene 10 g de carbohidratos, 5 g de proteína y 4 g de grasa. ¿Cuántas kcal tiene?',['96 kcal','76 kcal','110 kcal'],0,'10×4 + 5×4 + 4×9 = 40 + 20 + 36 = 96 kcal.'],
+['¿Qué significa “kcal”?',['Kilocaloría, una unidad de energía','Kilogramo de calcio','Kilo de carbohidratos'],0,'Una kcal equivale a 1,000 calorías. En las etiquetas, “calorías” suele significar kcal.'],
+['¿Cuál es la función principal de las proteínas?',['Construir y reparar tejidos','Dar energía rápida','Almacenar agua'],0,'Forman músculos, piel y enzimas. Dar energía no es su función principal.'],
+['¿Cuáles NO aportan calorías?',['Agua y vitaminas','Aceite y pan','Huevo y arroz'],0,'Son esenciales para el cuerpo, pero no aportan energía.'],
+['¿Cuál es la principal fuente de energía rápida?',['Carbohidratos','Vitaminas','Agua'],0,'Se convierten en glucosa. Los integrales la liberan más despacio.'],
+['Verdadero o falso: “Todas las grasas son malas”.',['Verdadero','Falso'],1,'El aguacate, las nueces y el aceite de oliva aportan grasas beneficiosas. Se moderan las saturadas y se evitan las trans.'],
+['¿Cuál es fuente de proteína?',['Lentejas','Manzana','Arroz'],0,'Las leguminosas, el huevo y el pollo aportan proteína. La manzana y el arroz son sobre todo carbohidratos.'],
+['Si por mucho tiempo comes más energía de la que gastas, ¿qué pasa?',['El cuerpo almacena el exceso como grasa','Se elimina sin ningún efecto','Aumenta la fibra'],0,'Es el balance energético: la energía que entra frente a la que se gasta.'],
+['Una bolsa dice “150 kcal por porción” y trae 3 porciones. Te la comes toda: ¿cuántas kcal consumes?',['450 kcal','150 kcal','300 kcal'],0,'Las etiquetas muestran valores por porción: 150 × 3 = 450 kcal.'],
+['Mito o realidad: “Los carbohidratos engordan si se comen de noche”.',['Mito','Realidad'],0,'Lo que importa es el balance energético total, no la hora del día.'],
+['¿Qué es la fibra?',['Un carbohidrato que no se digiere y ayuda a la digestión','Una vitamina','Un tipo de grasa'],0,'Está en frutas, verduras, leguminosas y cereales integrales, y ayuda a sentirte satisfecho.'],
+['¿Qué es la tasa metabólica basal (TMB)?',['La energía mínima que gasta el cuerpo en reposo','Las calorías de una comida','El peso ideal de una persona'],0,'Es la energía para funciones vitales como respirar o latir el corazón, aun sin moverte.'],
+['¿Qué macronutriente aporta más kcal por gramo?',['Grasa','Proteína','Carbohidrato'],0,'La grasa aporta 9 kcal por gramo; proteína y carbohidrato, 4.'],
+['Una porción de pan integral tiene 6 g de proteína, 24 g de carbohidratos y 2 g de grasa. ¿Cuántas kcal tiene?',['138 kcal','132 kcal','96 kcal'],0,'6×4 + 24×4 + 2×9 = 24 + 96 + 18 = 138 kcal.'],
+['¿Qué vitaminas necesitan grasa para absorberse bien?',['A, D, E y K','B y C','Ninguna'],0,'Son las vitaminas liposolubles; por eso el cuerpo necesita algo de grasa en la dieta.'],
+['Verdadero o falso: “El agua aporta calorías”.',['Verdadero','Falso'],1,'El agua es esencial, pero aporta 0 kcal.'],
+['Mito o realidad: “Las proteínas son solo para quien hace ejercicio”.',['Mito','Realidad'],0,'Todas las personas necesitan proteína para reparar tejidos, producir enzimas y defenderse.'],
+['En una etiqueta nutrimental, ¿qué conviene revisar primero?',['El tamaño de la porción y cuántas porciones trae','Solo el color del empaque','El precio'],0,'Todos los valores se calculan por porción; si comes más, multiplicas.'],
+['Verdadero o falso: “Las calorías de refrescos y jugos también cuentan”.',['Verdadero','Falso'],0,'Las bebidas azucaradas aportan energía, y muchas veces sin dar saciedad.'],
+['¿Cuál de estas opciones es un cereal integral?',['Avena','Jugo de caja','Pan dulce'],0,'Los cereales integrales conservan su fibra y liberan la energía más despacio.'],
+['Si gastas más energía de la que comes durante mucho tiempo, ¿qué ocurre?',['El cuerpo usa sus reservas de energía','El cuerpo almacena más grasa','No pasa nada'],0,'Es un déficit calórico: el balance energético sale negativo.'],
+['Una comida tiene 20 g de proteína, 30 g de carbohidratos y 10 g de grasa. ¿Cuántas kcal tiene?',['290 kcal','230 kcal','350 kcal'],0,'20×4 + 30×4 + 10×9 = 80 + 120 + 90 = 290 kcal.']];
+let P,F,deck,cur,round,logs,fx={},myName='',M=$('#main');
+const kc=fs=>4*fs.reduce((a,f)=>a+f[3]+f[4],0)+9*fs.reduce((a,f)=>a+f[5],0);
+const lg=t=>{logs.unshift(t);ui()};
+function ui(){
+ $('#rd').textContent=round?`Ronda ${round} de ${MAXR}`:'Juega contra dos bots: acierta, arma tu plato y calcula sus kcal.';
+ const nw=k=>fx[k]&&Date.now()-fx[k].t<1000,dl=k=>nw(k)?` style="animation-delay:-${Date.now()-fx[k].t}ms"`:'';
+ $('#pl').innerHTML=P?P.map((p,i)=>`<div class="p${i===cur?' on':''}${nw('f'+i)?' hit':nw('p'+i)?' won':''}"${nw('f'+i)?dl('f'+i):nw('p'+i)?dl('p'+i):''}><div class="av${i===cur?' act':''}">${p.av}</div><b>${p.n}</b><div class="pts${nw('p'+i)?' bump':''}"${dl('p'+i)}>${p.pts} pts${nw('p'+i)?`<i class="plus"${dl('p'+i)}>+${fx['p'+i].n}</i>`:''}</div><div class="plate">${[0,1,2].map(t=>{const f=p.pl[t];return `<div class="s c${t}${f?' f':''}${f&&nw('s'+i+t)?' new':''}"${f?dl('s'+i+t):''} title="${TN[t]}">${f?f[1]:''}<small>${TN[t][0]}</small></div>`}).join('')}</div><div class="mu">${p.cm?'⭐'.repeat(p.cm):'&nbsp;'}</div></div>`).join(''):'';
+ $('#tb').innerHTML=F?'<div class="cap">Alimentos en la mesa (gramos por porción)</div>'+F.map(f=>`<div class="c${f[2]}${f.own!=null?' x':''}">${f[1]} ${f[0]}${f.own!=null?' '+P[f.own].av:''}<br>P${f[3]} C${f[4]} G${f[5]}</div>`).join(''):'';
+ $('#log').innerHTML=(logs||[]).slice(0,4).map(t=>`<div>${t}</div>`).join('');
+}
+const pick=h=>new Promise(r=>{M.innerHTML='<div class="fade">'+h+'</div>';M.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>r(+b.dataset.i))});
+const nxt=()=>{if(!deck.length)deck=sh(Q.map((_,i)=>i));return Q[deck.pop()]};
+const award=(i,n)=>{P[i].pts+=n;fx['p'+i]={t:Date.now(),n};ui()};
+const esc=x=>x.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function analisis(fs,p){
+ return pick(`<h2>🍽️ Lo que aporta tu plato, ${p.n}</h2><p class="mu">Esto es lo que aporta cada alimento que elegiste:</p>`+
+ fs.map(f=>`<p>${f[1]} <b>${f[0]}</b>: ${BEN[f[0]]}</p>`).join('')+
+ `<p class="mu">Un plato no es una dieta completa: suma verduras y fruta para tener más fibra y micronutrientes.</p><button class="b go" data-i="0">Continuar</button>`)}
+function confetti(n){const c=['#e4572e','#f0a21e','#3e9a66','#2a9d8f','#7b5ea7','#f6c324'];for(let k=0;k<n;k++){const x=document.createElement('i');x.className='cf';x.style.cssText=`left:${Math.random()*100}vw;background:${c[k%6]};animation-duration:${2.5+Math.random()*2.5}s;animation-delay:${Math.random()*1.2}s`;document.body.appendChild(x);setTimeout(()=>x.remove(),7500)}}
+function victory(p,t){return new Promise(r=>{
+ const o=document.createElement('div'),pr=['¡Dominas los macronutrientes!','¡Tu plato fue un éxito!','¡Qué gran trabajo en la cocina!','¡Calculaste como un verdadero experto!'][Math.floor(Math.random()*4)];
+ o.className='ov vic';
+ o.innerHTML=`<div class="vc" role="dialog" aria-label="Victoria"><div class="rays"></div><div class="trophy">🏆</div><h2 class="vt">¡Ganaste, ${p.n}!</h2><p class="vs">${pr}<br>${t?`Completaste tu plato y calculaste ${t} kcal.`:'Terminaste la partida con más puntos.'}</p><div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div><div class="chip">🎖️ Nutri-Experto</div><div class="vb"><div><b class="cnt">0</b><small>puntos</small></div><div><b>${round||MAXR}</b><small>rondas</small></div></div><button class="b go" id="vn" style="position:relative;margin-top:14px;text-align:center">¡Seguir! →</button></div>`;
+ document.body.appendChild(o);confetti(70);rain();[300,1000,1700].forEach(d=>setTimeout(()=>spark(o),d));
+ const cn=o.querySelector('.cnt'),to=p.pts;let v=0;setTimeout(()=>{const iv=setInterval(()=>{v++;cn.textContent=v;if(v>=to)clearInterval(iv)},Math.max(60,900/Math.max(to,1)))},800);
+ o.querySelector('#vn').onclick=()=>{o.classList.add('out');setTimeout(()=>{o.remove();r()},250)}})}
+function toast(t){document.querySelectorAll('.toast').forEach(x=>x.remove());const x=document.createElement('div');x.className='toast';x.innerHTML=t;document.body.appendChild(x);setTimeout(()=>x.remove(),1950)}
+function spark(o){const e=['✨','⭐','🥑','🍎','🥕','🍌'];for(let n=0;n<16;n++){const x=document.createElement('span');x.className='sp';x.textContent=e[n%6];const a=Math.random()*6.28,d=90+Math.random()*130;x.style.cssText=`--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;o.appendChild(x)}}
+function bgf(){['🥑','🍎','🥕','🥦','🍌','🥚','🍇','🥛'].forEach((e,n)=>{const x=document.createElement('span');x.className='bgf';x.textContent=e;x.setAttribute('aria-hidden','true');x.style.cssText=`left:${(n*13+4)%92}vw;top:${(n*29+8)%85}vh;animation-delay:${-n}s`;document.body.appendChild(x)})}
+function flash(q,res,w){return new Promise(r=>{
+ const o=document.createElement('div');o.className='ov';
+ o.innerHTML=`<div class="fc" role="dialog" aria-label="Tarjeta de respuesta"><div class="fci"><div class="face fr"><small>PREGUNTA</small><h2>${q[0]}</h2><p class="mu">Lee con calma y gira la tarjeta cuando estés listo.</p><button class="b go" id="fl">Girar tarjeta ↻</button></div><div class="face bk ${w!=null?'win':'lose'}"><small>${w!=null?'¡RESPUESTA!':'NADIE ACERTÓ'}</small><div class="ans">${q[1][q[2]]}</div><p>${q[3]}</p><p class="rs">${res.join('<br>')}</p><button class="b go" id="nx">Continuar</button></div></div></div>`;
+ document.body.appendChild(o);const fc=o.querySelector('.fc');
+ const fl=()=>{if(!fc.classList.contains('flip')){fc.classList.add('flip');if(w!=null)setTimeout(()=>spark(o),350)}};
+ const gb=o.querySelector('#fl');gb.onclick=e=>{e.stopPropagation();fl();setTimeout(()=>o.querySelector('#nx').focus(),500)};gb.focus();
+ o.querySelector('#nx').onclick=e=>{e.stopPropagation();o.classList.add('out');setTimeout(()=>{o.remove();r()},250)}})}
+function rain(){const e=['🥑','🍎','🥚','🍗','🍌','🥕','🥦','⭐'];for(let n=0;n<30;n++){const x=document.createElement('span');x.className='rain';x.textContent=e[n%8];x.style.cssText=`left:${Math.random()*100}vw;animation-delay:${Math.random()*1.5}s;animation-duration:${2.5+Math.random()*2}s`;document.body.appendChild(x);setTimeout(()=>x.remove(),6500)}}
+function start(){
+ pick(`<h2>Cómo se juega</h2><p>1. Cada turno respondes una pregunta. Si aciertas, ganas 1 punto y eliges un alimento para tu plato.<br>2. Si falla alguien, el siguiente jugador puede robar la respuesta y ganar 1 punto (el alimento solo se gana respondiendo en tu propio turno).<br>3. Con 3 aciertos seguidos ganas un comodín ⭐ que te deja reintentar una pregunta.<br>4. Cuando tu plato tenga proteína, carbohidrato y grasa, calcula sus kcal: <b>proteína × 4 + carbohidrato × 4 + grasa × 9</b>. Quien lo logre primero gana.<br>5. Si pasan ${MAXR} rondas, gana quien tenga más puntos.</p><p class="mu">¿Cómo te llamas?</p><input id="nm" maxlength="14" placeholder="Tu nombre" value="${myName}" aria-label="Tu nombre" style="width:100%;margin-bottom:6px"><p class="mu">Elige la dificultad de los bots:</p><button class="b go" data-i="0">Fácil</button><button class="b go" data-i="1">Normal</button><button class="b go" data-i="2">Difícil</button>`).then(l=>{
+  const a=[[.45,.6],[.6,.8],[.8,.92]][l];
+  P=[{n:(myName=esc($('#nm').value.trim().slice(0,14)))||'Tú',av:'🙂',bot:0,acc:1},...sh(BOTS).slice(0,2).map((b,k)=>({n:b[0],av:b[1],bot:1,acc:a[k]}))].map(p=>({...p,pts:0,cm:0,st:0,pl:[null,null,null]}));
+  F=FD.map(f=>[...f]);F.forEach(f=>f.own=null);deck=[];logs=[];round=0;cur=-1;loop()});
+ ui();
+}
+async function loop(){
+ for(round=1;round<=MAXR;round++){for(let i=0;i<3;i++){cur=i;ui();if(i===0)toast('🍽️ Ronda '+round+' de '+MAXR);if(await turn(i))return}}
+ round=0;cur=-1;const m=Math.max(...P.map(p=>p.pts)),w=P.filter(p=>p.pts===m);
+ fin(`Se acabaron las rondas. ${w.length>1?'Hay empate':'Gana '+w[0].n} con ${m} puntos.`);
+}
+function fin(msg){(msg.includes('Gana '+P[0].n)?victory(P[0],0):Promise.resolve()).then(()=>pick(`<h2>🏆 Fin de la partida</h2><p>${msg}</p><p>${P.map(p=>`${p.n}: ${p.pts} pts`).join(' · ')}</p><button class="b go" data-i="0">Jugar otra vez</button>`)).then(start)}
+async function answer(i,q,steal){
+ const p=P[i];
+ if(p.bot){
+  M.innerHTML=`<div class="fade"><p class="mu">${p.av} ${steal?p.n+' intenta robar la pregunta':'Turno de '+p.n}</p><h2>${q[0]}</h2><div class="think">${p.av} piensa<span class="dots"><span>.</span><span>.</span><span>.</span></span></div></div>`;
+  await sleep(1600);const ok=Math.random()<p.acc;
+  M.querySelector('.think').remove();M.firstChild.insertAdjacentHTML('beforeend',`<div class="flash ${ok?'ok':'no'}">${ok?'✅ ¡'+p.n+' acierta!':'❌ '+p.n+' falla'}</div>`);
+  await sleep(1100);return ok}
+ const ord=q[1].length>2?sh(q[1].map((_,k)=>k)):q[1].map((_,k)=>k),dis=new Set();let note='';
+ for(;;){
+  const k=await pick(`<p class="mu">${steal?'🙂 Puedes robar la respuesta':'🙂 Tu turno'}</p><h2>${q[0]}</h2>${note}${ord.map((o,k)=>`<button class="b" data-i="${k}" ${dis.has(k)?'disabled':''}>${q[1][o]}</button>`).join('')}${p.cm&&!steal?'<p class="mu">Tienes comodín ⭐ por si fallas.</p>':''}`);
+  const ok=ord[k]===q[2];M.querySelectorAll('.b').forEach(x=>x.disabled=true);M.querySelector(`[data-i="${k}"]`).classList.add(ok?'good':'bad');await sleep(750);
+  if(ok)return true;
+  if(!steal&&p.cm>0){p.cm--;dis.add(k);note='<p class="no">Incorrecto. Usaste tu comodín ⭐: inténtalo otra vez.</p>';ui();continue}
+  return false}
+}
+async function turn(i){
+ const p=P[i];
+ toast(p.av+' Turno de '+p.n);
+ if(p.pl.every(Boolean))return final(i);
+ const q=nxt(),res=[];let w=null;
+ if(await answer(i,q,0)){w=i}
+ else{p.st=0;const j=(i+1)%3;fx['f'+i]={t:Date.now()};res.push(`<span class="no">${p.n} falla.</span>`);if(await answer(j,q,1)){w=j;res.push(`${P[j].n} roba la respuesta y gana 1 punto.`),toast('🎯 ¡'+P[j].n+' roba la respuesta!')}else res.push(`${P[j].n} no la roba.`)}
+ if(w===i){res.push(`<span class="ok">${p.n} acierta.</span>`);p.st++;if(p.st>=3){p.st=0;p.cm=Math.min(2,p.cm+1);res.push(`${p.n} gana un comodín ⭐.`),toast('⭐ ¡'+p.n+' gana un comodín!')}}
+ if(w!=null)award(w,1);else lg(`Nadie acertó (${q[1][q[2]]}).`);
+ await flash(q,res,w);
+ if(w===i)await take(w);
+ return false}
+async function take(i){
+ const p=P[i],av=F.map((f,k)=>k).filter(k=>F[k].own==null&&!p.pl[F[k][2]]);
+ if(!av.length)return;
+ let k;
+ if(p.bot){k=av[Math.floor(Math.random()*av.length)];M.innerHTML=`<div class="flash fade">${p.av} ${p.n} elige <span class="big">${F[k][1]}</span> ${F[k][0]}</div>`;await sleep(1300)}
+ else k=av[await pick(`<h2>Elige un alimento para tu plato</h2><div class="fg">${av.map((k,n)=>`<button class="b c${F[k][2]}" data-i="${n}">${F[k][1]} <b>${F[k][0]}</b><br><span class="mu">${TN[F[k][2]]} · P${F[k][3]} C${F[k][4]} G${F[k][5]} g</span></button>`).join('')}</div>`)];
+ F[k].own=i;p.pl[F[k][2]]=F[k];fx['s'+i+F[k][2]]={t:Date.now()};lg(`${p.av} ${p.n} agrega ${F[k][1]} ${F[k][0]} a su plato.`);await sleep(950)}
+async function final(i){
+ const p=P[i],fs=p.pl,t=kc(fs);
+ if(p.bot){M.innerHTML=`<h2>${p.n} calcula las kcal de su plato…</h2><p class="mu">🤖 Hace la cuenta con los gramos de sus tres alimentos.</p>`;await sleep(1500);
+  if(Math.random()<p.acc*.9){award(i,3);fin(`${p.n} completó su plato (${fs.map(f=>f[1]).join(' ')}) y calculó ${t} kcal.`);return true}
+  lg(`${p.n} se equivocó en el cálculo y lo repetirá.`);return false}
+ const g=fs.reduce((a,f)=>[a[0]+f[3],a[1]+f[4],a[2]+f[5]],[0,0,0]);
+ const v=await new Promise(r=>{M.innerHTML=`<h2>Reto final: ¿cuántas kcal tiene tu plato?</h2><p>${fs.map(f=>f[1]+' '+f[0]).join(' + ')}</p><p>Total: <b>${g[0]} g</b> de proteína, <b>${g[1]} g</b> de carbohidrato y <b>${g[2]} g</b> de grasa.</p><p class="mu">kcal = proteína × 4 + carbohidrato × 4 + grasa × 9</p><input id="n" type="number" inputmode="numeric" aria-label="kcal totales"> kcal <button class="b go" id="ok" style="margin-top:12px">Comprobar</button>`;$('#ok').onclick=()=>r(+$('#n').value)});
+ if(v===t){award(i,3);await victory(p,t);await analisis(fs,p);fin(`¡${p.n}, completaste tu plato y calculaste ${t} kcal! ${g[0]}×4 + ${g[1]}×4 + ${g[2]}×9 = ${t}.`);return true}
+ await pick(`<h2 class="no">Casi: revisa el cálculo</h2><p>${g[0]}×4 + ${g[1]}×4 + ${g[2]}×9 = ${g[0]*4} + ${g[1]*4} + ${g[2]*9} = <b>${t} kcal</b>.</p><p>Lo volverás a intentar en tu próximo turno.</p><button class="b go" data-i="0">Continuar</button>`);
+ return false}
+bgf();start();
+</script>
+</body>
+</html>
